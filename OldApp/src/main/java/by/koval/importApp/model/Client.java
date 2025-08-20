@@ -1,0 +1,29 @@
+package by.koval.importApp.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+
+@Entity
+@Table(name = "clients")
+@Getter
+@Setter
+public class Client {
+    @Column(name = "agency")
+    private String agency;
+    @Id
+    private String guid;
+    @Column(name = "first_name")
+    private String firstName;
+    @Column(name = "last_name")
+    private String lastName;
+    @Column(name = "status")
+    private String status;
+    @Column(name = "dob")
+    private Date dob;
+    @Column(name = "created_datetime")
+    private LocalDateTime createdDateTime;
+}
