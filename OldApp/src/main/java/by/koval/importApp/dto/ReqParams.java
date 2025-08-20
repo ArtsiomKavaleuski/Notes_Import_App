@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ReqParam {
+public class ReqParams {
     private String agency;
     private LocalDate dateFrom;
     private LocalDate dateTo;

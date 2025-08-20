@@ -1,6 +1,6 @@
 package by.koval.importApp.controller;
 
-import by.koval.importApp.model.Client;
+import by.koval.importApp.model.OldClient;
 import by.koval.importApp.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ public class ClientsController {
     }
 
     @PostMapping("/clients")
-    public List<Client> getClients() {
+    public List<OldClient> getClients() {
         return clientRepository.findAll();
     }
 }

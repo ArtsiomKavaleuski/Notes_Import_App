@@ -1,7 +1,7 @@
 package by.koval.importApp.controller;
 
-import by.koval.importApp.dto.ReqParam;
-import by.koval.importApp.model.Note;
+import by.koval.importApp.dto.ReqParams;
+import by.koval.importApp.model.OldNote;
 import by.koval.importApp.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +18,7 @@ public class NotesController {
     private final NoteService noteService;
 
     @PostMapping
-    public List<Note> getNotes(@RequestBody ReqParam requestParam) {
+    public List<OldNote> getNotes(@RequestBody ReqParams requestParam) {
         return noteService.getAll(requestParam);
     }
 }

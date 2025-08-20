@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class Note {
+public class OldNote {
     @Column(name = "comments")
     private String comments;
     @Id

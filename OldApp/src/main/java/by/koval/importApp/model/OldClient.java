@@ -17,7 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class Client {
+public class OldClient {
     @Column(name = "agency")
     private String agency;
     @Id

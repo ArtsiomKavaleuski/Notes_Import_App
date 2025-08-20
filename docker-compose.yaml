@@ -8,9 +8,9 @@ services:
     depends_on:
       - newDb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/newdb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
+      SPRING_DATASOURCE_URL: jdbc:postgresql://newDb:5433/newdb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
 
   oldApp:
     build: oldApp
@@ -26,13 +26,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: admin
 
   newDb:
-    image: 'postgres:latest'
-    environment:
-      - POSTGRES_DB=db
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_USER=admin
+    image: postgres:17.5
+    container_name: postgres-new-db
     ports:
-      - '5433:5433'
+      - "5434:5434"
+    environment:
+      POSTGRES_DB: newdb
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   oldDb:
     image: postgres:17.5

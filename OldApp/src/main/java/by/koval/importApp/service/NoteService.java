@@ -1,7 +1,7 @@
 package by.koval.importApp.service;
 
-import by.koval.importApp.dto.ReqParam;
-import by.koval.importApp.model.Note;
+import by.koval.importApp.dto.ReqParams;
+import by.koval.importApp.model.OldNote;
 import by.koval.importApp.repository.NoteRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +16,11 @@ import java.util.List;
 public class NoteService {
     private final NoteRepository noteRepository;
 
-    public List<Note> getAll(ReqParam reqParam) {
-        Specification<Note> specification = (root, query, criteriaBuilder) -> {
+    public List<OldNote> getAll(ReqParams reqParams) {
+        Specification<OldNote> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("clientGuid")), "%" + reqParam.getClientGuid() + "%"));
-            predicates.add(criteriaBuilder.between(root.get("modifiedDateTime"), reqParam.getDateTo(), reqParam.getDateFrom()));
+            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("clientGuid")), "%" + reqParams.getClientGuid() + "%"));
+            predicates.add(criteriaBuilder.between(root.get("modifiedDateTime"), reqParams.getDateTo(), reqParams.getDateFrom()));
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
         return noteRepository.findAll(specification);
