@@ -1,5 +1,5 @@
 services:
-  newApp:
+  new-app:
     build: newApp
     image: new-app
     container_name: new-app
@@ -21,9 +21,9 @@ services:
     depends_on:
       - oldDb
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
+      SPRING_DATASOURCE_URL: jdbc:postgresql://oldDb:5432/db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
 
   newDb:
     image: 'postgres:latest'
@@ -35,14 +35,17 @@ services:
       - '5433:5433'
 
   oldDb:
-    image: 'postgres:latest'
-    environment:
-      - POSTGRES_DB=db
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_USER=admin
-#      - PGDATA=/var/lib/postgresql/data/pgdata
-#    volumes:
-#      - ../2. Init Database:/docker-entrypoint-initdb.d
-#      - .:/var/lib/postgresql/data
+    image: postgres:17.5
+    container_name: postgres-old-db
     ports:
-      - '5432:5432'
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
+

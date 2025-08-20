@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notes")
 @RequiredArgsConstructor
+@RequestMapping(path = "/notes")
 public class NotesController {
     private final NoteService noteService;
 
@@ -22,3 +22,4 @@ public class NotesController {
         return noteService.getAll(requestParam);
     }
 }
+

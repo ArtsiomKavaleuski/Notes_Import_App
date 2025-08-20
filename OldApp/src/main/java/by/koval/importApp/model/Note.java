@@ -1,15 +1,18 @@
 package by.koval.importApp.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notes")
+@Table(name = "notes", schema = "public")
 @Getter
 @Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class Note {
     @Column(name = "comments")
     private String comments;
