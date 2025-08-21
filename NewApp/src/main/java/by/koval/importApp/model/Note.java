@@ -20,7 +20,7 @@ public class Note {
     @Column(name = "created_date_time", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDateTime;
-    @Column(name = "last_midified_date_time", nullable = false)
+    @Column(name = "last_modified_date_time", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastModifiedDateTime;
     @Column(name = "created_by_user_id")

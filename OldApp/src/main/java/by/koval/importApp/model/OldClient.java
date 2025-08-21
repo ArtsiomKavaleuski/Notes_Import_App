@@ -1,13 +1,14 @@
 package by.koval.importApp.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "clients", schema = "public")
@@ -29,7 +30,9 @@ public class OldClient {
     @Column(name = "status")
     private String status;
     @Column(name = "dob")
-    private Date dob;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dob;
     @Column(name = "created_datetime")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDateTime;
 }

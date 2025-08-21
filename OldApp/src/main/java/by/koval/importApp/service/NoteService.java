@@ -17,14 +17,18 @@ public class NoteService {
     private final NoteRepository noteRepository;
 
     public List<OldNote> getAll(ReqParams reqParams) {
-        Specification<OldNote> specification = (root, query, criteriaBuilder) -> {
+        Specification<OldNote> specification = (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("clientGuid")), "%" + reqParams.getClientGuid() + "%"));
+            predicates.add(criteriaBuilder.like(root.get("clientGuid"), "%" + reqParams.getClientGuid() + "%"));
             predicates.add(criteriaBuilder.between(root.get("modifiedDateTime"),
-                    reqParams.getDateTo(),
-                    reqParams.getDateFrom()));
+                    reqParams.getDateFrom(),
+                    reqParams.getDateTo()));
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
         return noteRepository.findAll(specification);
+    }
+
+    public void addNote(OldNote note) {
+        noteRepository.save(note);
     }
 }

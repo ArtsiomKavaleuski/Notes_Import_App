@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ImportsRepository extends JpaRepository<Import, Integer> {
-    Optional<Import> findTopByOrderByLastImportDateTimeDesc();
+    Optional<Import> findTopByOrderByImportDateTimeDesc();
 }

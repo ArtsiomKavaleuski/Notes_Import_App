@@ -12,7 +12,9 @@ import by.koval.importApp.repository.NotesRepository;
 import by.koval.importApp.repository.PatientsRepository;
 import by.koval.importApp.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,73 +24,93 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ImportServiceImpl implements ImportService {
     private final NotesRepository notesRepository;
     private final PatientsRepository patientsRepository;
     private final UsersRepository usersRepository;
     private final ImportsRepository importsRepository;
     private final HttpClientService httpClientService;
+    private static final Logger logger = LoggerFactory.getLogger(ImportServiceImpl.class);
 
-    private final String oldAppUrl = "${old-app-url}";
+
+    @Value("${api-notes-url}")
+    private String notesUrl;
+
+    @Value("${api-clients-url}")
+    private String clientsUrl;
 
     @Override
     public void importNotes() {
         int notesImported = 0;
-        List<OldClientDto> oldClientsForCurrentImport = getOldClientsForCurrentImport();
-        LocalDateTime dateFrom = getLastImportTime();
-        LocalDateTime dateTo = LocalDateTime.now();
-//        ReqParams reqParams = ReqParams.builder()
-//                .dateFrom(getLastImportTime())
-//                .dateTo(LocalDateTime.now())
-//                .build();
-//        int batchSize = 50;
-//        for (int i = 0; i < oldClientsForCurrentImport.size(); i+=batchSize) {
-//            List<OldClientDto> batchOldClients = oldClientsForCurrentImport.subList(i, Math.min(i+batchSize, oldClientsForCurrentImport.size()));
-//            List<OldNoteDto> batchOldNotes = batchOldClients.parallelStream()
-//                    .map(oldClientDto -> Arrays.asList(Objects.requireNonNull(httpClientService
-//                            .postRequest(oldAppUrl + "/notes",
-//                                    ReqParams.builder()
-//                                            .agency(oldClientDto.getAgency())
-//                                            .dateFrom(dateFrom)
-//                                            .dateTo(dateTo)
-//                                            .clientGuid(oldClientDto.getGuid()).build(),
-//                                    OldNoteDto[].class).getBody())))
-//                    .flatMap(List::stream)
-//                    .toList();
-//
-//        }
-        for (OldClientDto oldClient : oldClientsForCurrentImport) {
-            ReqParams reqParams = ReqParams.builder()
-                    .agency(oldClient.getAgency())
-                    .dateFrom(dateFrom)
-                    .dateTo(dateTo)
-                    .clientGuid(oldClient.getGuid())
-                    .build();
-            List<OldNoteDto> oldNotesForCurrentClientGuid = Arrays.asList(Objects.requireNonNull(httpClientService
-                    .postRequest(oldAppUrl + "/notes", reqParams, OldNoteDto[].class).getBody()));
+        int notesFailed = 0;
+        long startTime = System.currentTimeMillis();
 
-            for (OldNoteDto oldNote : oldNotesForCurrentClientGuid) {
-                notesImported+=proceedOldNoteForClientGuid(oldNote);
+        try {
+            List<OldClientDto> oldClientsForCurrentImport = getOldClientsForCurrentImport();
+            LocalDateTime dateFrom = getLastImportTime();
+            LocalDateTime dateTo = LocalDateTime.now();
+
+            logger.info("Начало импорта. Импортируются заметки с: {} и по: {}", dateFrom, dateTo);
+
+            for (OldClientDto oldClient : oldClientsForCurrentImport) {
+                try {
+                    ReqParams reqParams = ReqParams.builder()
+                            .agency(oldClient.getAgency())
+                            .dateFrom(dateFrom)
+                            .dateTo(dateTo)
+                            .clientGuid(oldClient.getGuid())
+                            .build();
+
+                    OldNoteDto[] oldNotesForCurrentClientGuid = Objects.requireNonNull(
+                            httpClientService.postRequest(notesUrl, reqParams, OldNoteDto[].class).getBody());
+
+                    for (OldNoteDto oldNote : oldNotesForCurrentClientGuid) {
+                        try {
+                            notesImported += proceedOldNoteForClientGuid(oldNote);
+                        } catch (Exception e) {
+                            notesFailed++;
+                            logger.error("Ошибка при импорте заметки для клиента {}: {}", oldClient.getGuid(), e.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Ошибка при получении заметок для клиента через REST API {}: {}", oldClient.getGuid(), e.getMessage());
+                }
             }
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+
+            logger.info("Импорт завершен. Успешно импортировано заметок: {}, Сбойных операций: {}, Время выполнения: {} мс",
+                    notesImported, notesFailed, duration);
+
+            importsRepository.save(Import.builder()
+                    .notesNumberImported(notesImported)
+                    .notesNumberFailed(notesFailed)
+                    .importDateTime(dateTo)
+                    .duration(duration)
+                    .build());
+        } catch (Exception e) {
+            logger.error("Критическая ошибка при импорте: {}", e.getMessage());
+            throw e;
         }
-        importsRepository.save(Import.builder()
-                .notesNumberImported(notesImported)
-                .importDateTime(dateTo)
-                .build());
+    }
+
+    @Override
+    public List<Import> getImports() {
+        return importsRepository.findAll();
     }
 
     private LocalDateTime getLastImportTime() {
         LocalDateTime lastImportTime = LocalDateTime.of(1970, 1, 1, 0, 0);
-        if (importsRepository.findTopByOrderByLastImportDateTimeDesc().isPresent()) {
-            lastImportTime = importsRepository.findTopByOrderByLastImportDateTimeDesc().get().getImportDateTime();
+        if (importsRepository.findTopByOrderByImportDateTimeDesc().isPresent()) {
+            lastImportTime = importsRepository.findTopByOrderByImportDateTimeDesc().get().getImportDateTime();
         }
         return lastImportTime;
     }
 
     private List<OldClientDto> getOldClientsForCurrentImport() {
         List<OldClientDto> oldClients = Arrays.asList(Objects.requireNonNull(httpClientService
-                .postRequest(oldAppUrl + "/clients", OldClientDto[].class).getBody()));
+                .postRequest(clientsUrl, null, OldClientDto[].class).getBody()));
         List<Patient> patientsForImport = patientsRepository.findAllByStatusIdIn(List.of(200, 210, 230));
         List<String> patientsOldGuidsForImport = patientsForImport.stream()
                 .map(Patient::getOldClientGuids)
@@ -129,4 +151,5 @@ public class ImportServiceImpl implements ImportService {
         }
         return notesImported;
     }
+
 }

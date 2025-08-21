@@ -25,4 +25,8 @@ public class Import {
     private LocalDateTime importDateTime;
     @Column(name = "notes_number_imported")
     private int notesNumberImported;
+    @Column(name = "notes_number_failed")
+    private int notesNumberFailed;
+    @Column(name = "duration")
+    private long duration;
 }
