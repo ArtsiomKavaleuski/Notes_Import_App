@@ -20,10 +20,11 @@ public class NoteService {
         Specification<OldNote> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("clientGuid")), "%" + reqParams.getClientGuid() + "%"));
-            predicates.add(criteriaBuilder.between(root.get("modifiedDateTime"), reqParams.getDateTo(), reqParams.getDateFrom()));
+            predicates.add(criteriaBuilder.between(root.get("modifiedDateTime"),
+                    reqParams.getDateTo(),
+                    reqParams.getDateFrom()));
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
         return noteRepository.findAll(specification);
     }
-
 }
